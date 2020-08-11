@@ -1,0 +1,17 @@
+{
+  "name": "node-torrent",
+  "version": "0.0.1",
+  "description": "A bit torrent client in Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Lennon Chimbumu",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^14.0.27",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  }
+}
