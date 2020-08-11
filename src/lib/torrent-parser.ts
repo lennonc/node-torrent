@@ -1,10 +1,8 @@
 import { readFileSync } from 'fs';
 import crypto from 'crypto';
-// import bignum from 'bignum';
 import * as bencode from 'bencode';
 import { Torrent } from '../types/torrent';
-const bignum = require('bignum');
-
+import { toBufferBE } from 'bigint-buffer';
 
 export function open(filePath: string): Torrent {
   return bencode.decode(readFileSync(filePath));
@@ -14,8 +12,13 @@ export function size(torrent: Torrent): Buffer {
   const size = torrent.info.files ? 
     torrent.info.files.map((file: any) => file.length).reduce((a:any, b:any) => a + b) :
     torrent.info.length;
+  
+  // const buf: Buffer = Buffer.from(size);
 
-  return bignum.toBuffer(size, { size: 8 });
+  // return bignum.toBuffer(size, { size: 8 });
+  // BigInt(size).to
+  return toBufferBE(BigInt(size), 8)
+
 }
 
 export function infoHash(torrent: Torrent): Buffer {
