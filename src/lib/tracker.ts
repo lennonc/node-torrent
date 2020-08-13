@@ -17,7 +17,6 @@ export function getPeers(torrent: Torrent, callback: any) {
 
   socket.on('message', (response: Buffer) => {
     if (isConnectResponse(response)) {
-      console.log("Connecting");
       
       const connectionResponse = parseConnectionResponse(response);
       if (connectionResponse.connectionId) {
@@ -26,9 +25,6 @@ export function getPeers(torrent: Torrent, callback: any) {
       }
     } else if (isAnnounceResponse(response)) {
       // 4. parse announce response
-      console.log('====================================');
-      console.log('Parsing Announce');
-      console.log('====================================');
       const announceResp = parseAnnounceResponse(response);
       // 5. pass peers to callback
       callback(announceResp.peers);
@@ -39,7 +35,7 @@ export function getPeers(torrent: Torrent, callback: any) {
 // TODO: Need to figure out types here
 function udpSend(socket: any, message: any, rawUrl: any, callback = () => { }) {
   const url: UrlWithStringQuery = parse(rawUrl);
-  socket.send(message, 0, message.length, url.port, url.host, callback);
+  socket.send(message, 0, message.length, url.port, url.hostname, callback);
 }
 
 function buildConnectionRequest(): Buffer {
@@ -69,7 +65,7 @@ function isConnectResponse(response: Buffer): boolean {
 
 function isAnnounceResponse(response: Buffer): boolean {
   const action = response.readUInt32BE(0);
-  return action === 0;
+  return action === 1;
 }
 
 function buildAnnounceRequest(connectionId: Buffer, torrent: Torrent, port=6681): Buffer {
