@@ -16,8 +16,11 @@ export function getPeers(torrent: Torrent, callback: any) {
   udpSend(socket, buildConnectionRequest(), url);
 
   socket.on('message', (response: Buffer) => {
+    console.log('====================================');
+    console.log(response);
+    console.log('====================================');
     if (isConnectResponse(response)) {
-      
+
       const connectionResponse = parseConnectionResponse(response);
       if (connectionResponse.connectionId) {
         const announceRequest = buildAnnounceRequest(connectionResponse.connectionId, torrent);
@@ -30,7 +33,7 @@ export function getPeers(torrent: Torrent, callback: any) {
       callback(announceResp.peers);
     }
   })
-} 
+}
 
 // TODO: Need to figure out types here
 function udpSend(socket: any, message: any, rawUrl: any, callback = () => { }) {
@@ -68,7 +71,7 @@ function isAnnounceResponse(response: Buffer): boolean {
   return action === 1;
 }
 
-function buildAnnounceRequest(connectionId: Buffer, torrent: Torrent, port=6681): Buffer {
+function buildAnnounceRequest(connectionId: Buffer, torrent: Torrent, port = 6681): Buffer {
   const buffer: Buffer = Buffer.allocUnsafe(98);
 
   // connection id
