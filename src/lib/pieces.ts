@@ -1,29 +1,42 @@
+import * as torrentParser from './torrent-parser';
+import { Torrent, PieceBlock } from "../types/torrent";
+
 export default class Piece {
-  requested: boolean[];
-  received: boolean[];
+  private requested: boolean[][];
+  private received: boolean[][];
 
-  constructor(size: number) {
-    this.requested = new Array(size).fill(false);
-    this.received = new Array(size).fill(false);
-  }
+  constructor(torrent: Torrent) {
 
-  addRequested(pieceIndex: number): void {
-    this.requested[pieceIndex] = true;
-  }
-
-  addReceived(pieceIndex: number): void {
-    this.received[pieceIndex] = true;
-  }
-
-  needed(pieceIndex: number): boolean {
-    if (this.requested.every(i => i === true)) {
-      this.requested = this.received.slice();
+    const buildPiecesArray = () => {
+      const nPieces = torrent.info.pieces.length / 20;
+      const arr = new Array(nPieces).fill(null);
+      return arr.map((_, i) => new Array(torrentParser.blocksPerPiece(torrent, i)).fill(false))
     }
 
-    return !this.requested[pieceIndex];
+    this.requested = buildPiecesArray();
+    this.received = buildPiecesArray();
+  }
+
+  addRequested(pieceBlock: PieceBlock): void {
+    const blockIndex = pieceBlock.begin / torrentParser.BLOCK_LEN;
+    this.requested[pieceBlock.index][blockIndex] = true;
+  }
+
+  addReceived(pieceBlock: PieceBlock): void {
+    const blockIndex = pieceBlock.begin / torrentParser.BLOCK_LEN;
+    this.received[pieceBlock.index][blockIndex] = true;
+  }
+
+  needed(pieceBlock: PieceBlock): boolean {
+    if (this.requested.every(blocks => blocks.every(i => i))) {
+      this.requested = this.received.map(blocks => blocks.slice());
+    }
+
+    const blockIndex = pieceBlock.begin / torrentParser.BLOCK_LEN;
+    return !this.requested[pieceBlock.index][blockIndex];
   }
 
   isDone(): boolean {
-    return this.received.every(i => i === true);
+    return this.received.every(blocks => blocks.every(i => i));
   }
 }

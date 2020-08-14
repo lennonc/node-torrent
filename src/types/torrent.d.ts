@@ -1,3 +1,5 @@
+import { Interface } from "readline";
+
 export interface Torrent {
   announce: Buffer;
   encoding: Buffer;
@@ -12,6 +14,12 @@ interface TorrentInfo {
   'piece length': number;
   pieces: Buffer;
   files?: any
+}
+
+export interface PieceBlock {
+  index: number;
+  begin: number;
+  length: number;
 }
 
 export interface Peer {
