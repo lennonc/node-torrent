@@ -4,7 +4,6 @@ import { Buffer } from 'buffer'
 import * as message from './message';
 import * as tracker from './tracker';
 import { Torrent, Peer } from '../types/torrent';
-import { Socket } from 'dgram';
 
 export default function (torrent: Torrent) {
   const requested: any[]= [];
@@ -19,10 +18,11 @@ function download(peer: Peer, torrent: Torrent, requested: any) {
   socket.connect(peer.port, peer.ip, () => {
     socket.write(message.buildHandshake(torrent));
   });
-  onWholeMsg(socket, (msg: any) => messageHandler(msg, socket, requested));
+  const queue: any[] = [];
+  onWholeMsg(socket, (msg: any) => messageHandler(msg, socket, requested, queue));
 }
 
-function messageHandler(msg: any, socket: net.Socket, requested: any) {
+function messageHandler(msg: any, socket: net.Socket, requested: any[], queue: any[]) {
   if (isHandshake(msg)) {
     socket.write(message.buildInterested())
   } else {
@@ -30,9 +30,9 @@ function messageHandler(msg: any, socket: net.Socket, requested: any) {
 
     if (m.id === 0) chokeHandler();
     if (m.id === 1) unchokeHandler();
-    if (m.id === 4) haveHandler(m.payload, socket, requested);
+    if (m.id === 4) haveHandler(m.payload, socket, requested, queue);
     if (m.id === 5) bitfieldHandler(m.payload);
-    if (m.id === 7) pieceHandler(m.payload);
+    if (m.id === 7) pieceHandler(m.payload, socket, requested, queue);
 
   }
 }
@@ -53,7 +53,19 @@ function haveHandler(payload: Buffer, socket: net.Socket, requested: any) {
 
 function bitfieldHandler(payload) {  }
 
-function pieceHandler(payload) {  }
+function pieceHandler(payload: any, socket: net.Socket, requested: any[], queue: any[]) {  
+  queue.shift()
+  requestPiece(socket, requested, queue);
+}
+
+function requestPiece(socket, requested, queue) {
+  if (requested[queue[0]]) {
+    queue.shift()
+  } else {
+    socket.write(message.buildRequest(pieceIndex));
+  }
+}
+
 
 function isHandshake(msg: any): Boolean {
   return msg.length === msg.readUInt8(0) + 49 &&
